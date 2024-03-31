@@ -9,12 +9,20 @@ export default class Scene {
 
         // debug
         this.params = {
-            'is-update': true
+            'is-update': true,
+            gap: 20,
+            noGap: false,
+            'rectColor': '#000000',
+            'buildings-height': true,
         }
         this.debug = this.globalContext.debug
         if (this.debug.active) {
             this.debugFolder = this.debug.ui.addFolder(this.id)
             this.debugFolder.add(this.params, 'is-update')
+            this.debugFolder.add(this.params, 'noGap').name('No gap').onChange((value) => {
+                this.params.gap = value ? 0 : 20; 
+            });
+            this.debugFolder.addColor(this.params, 'rectColor')
         }
 
         // canvas
@@ -38,7 +46,7 @@ export default class Scene {
 
     resize() {
         this.domElement.setSize()
-        this.canvas.width = this.domElement.width * this.globalContext.windowSize.pixelRatio // set dimensions
+        this.canvas.width = this.domElement.width * this.globalContext.windowSize.pixelRatio
         this.canvas.height = this.domElement.height * this.globalContext.windowSize.pixelRatio
         this.context.scale(this.globalContext.windowSize.pixelRatio, this.globalContext.windowSize.pixelRatio)
     }

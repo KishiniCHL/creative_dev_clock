@@ -9,16 +9,16 @@
 </head>
 
 <body>
+    <h1>Clock project</h1>
     <div class="container">
         <canvas id="canvas-scene" class="scene"></canvas>
-        <h1>Project<br>structure</h1>
-        <canvas id="canvas-scene-2" class="scene"></canvas>
+        <!-- <canvas id="canvas-building" class="scene"></canvas> -->
     </div>
     <script type="module" src="./main.js"></script>
 </body>
 <style>
     body {
-        background-color: black;
+        background-color: rgb(0, 0, 0);
     }
 
     h1 {
@@ -26,20 +26,22 @@
         text-align: center;
         text-transform: uppercase;
         font-style: italic;
-        color: white;
+        color: rgb(199, 169, 255);
         line-height: 1.4em;
         font-size: 1.5rem;
     }
 
     .container {
         display: flex;
+        justify-content: center;
         align-items: center;
-        gap: 1rem;
+
     }
 
     .scene {
-        width: 40vw;
-        height: 60vw;
+        width: 80vw;
+        height: 40vw;
+        background-color: rgb(188, 212, 248);
     }
 </style>
 

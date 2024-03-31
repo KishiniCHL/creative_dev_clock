@@ -1,109 +1,136 @@
+import GlobalContext from "../GlobalContext"
 import Scene from "../canvas/Scene"
-import { deg2rad } from "../utils/MathUtils"
-import { RotatingArc } from "../canvas/shapes/arcs"
+// import DomElement from "../utils/DomElement"
 
-const drawLine = (context, x, y, length, angle) => {
-    context.save()
-    context.beginPath()
-
-    // offset + rotate
-    context.translate(x, y)
-    context.rotate(angle) // ! radian
-
-    // draw line
-    context.moveTo(-length / 2, 0)
-    context.lineTo(length / 2, 0)
-    context.stroke()
-
-    context.closePath()
-    context.restore()
-}
 
 export default class Scenario extends Scene {
-    constructor(id) {
+    constructor(id = 'canvas-scene') {
         super(id)
+    
+        this.id = id
+        this.globalContext = new GlobalContext()
+        this.globalContext.pushScene(this)
+    
+        this.canvas = document.getElementById(id);
+        this.canvas.width = this.canvas.offsetWidth;
+        this.canvas.height = this.canvas.offsetHeight;
+    
+        this.ctx = this.canvas.getContext('2d');
+        this.radius = Math.min(this.canvas.width, this.canvas.height) / 2 * 0.4;
+        this.ctx.translate(this.canvas.width / 2, this.radius);
+    
+        this.drawRectangle();
 
-        // gradations
-        this.drawGradation()
+        this.radius = Math.min(this.canvas.width, this.canvas.height) / 2 * 0.3;
 
-        // arcs
-        this.arcs = []
-        this.nArcs = 10
-        for (let i = 0; i < this.nArcs; i++) {
-            const arc_ = new RotatingArc(
-                this.width / 2,
-                this.height / 2,
-                this.mainRadius + (i - this.nArcs / 2) * this.deltaRadius,
-                i != 0 && i != this.nArcs - 1 ? deg2rad(Math.random() * 360) : 0,
-                i != 0 && i != this.nArcs - 1 ? deg2rad(Math.random() * 360) : deg2rad(360)
-            )
-            this.arcs.push(arc_)
-        }
+        this.drawClock = this.drawClock.bind(this)
 
-        // debug
-        this.params['line-width'] = 2
-        this.params.speed = 1
-        this.params.color = "#ffffff"
-        if (this.debug.active) {
-            this.debugFolder.add(this.params, 'line-width', 1, 10).onChange(() => this.drawUpdate())
-            this.debugFolder.add(this.params, 'speed', -2, 2, .25)
-            this.debugFolder.addColor(this.params, 'color')
-        }
+        this.canvas = document.getElementById(id);
+        this.updateCanvasDimensions();
+    
+        window.addEventListener('resize', () => {
+            this.updateCanvasDimensions();
+            this.drawRectangle();
+            this.drawClock();
+        });
     }
 
-    resize() {
-        super.resize()
-
-        // main dimensions
-        this.mainRadius = this.width < this.height ? this.width : this.height
-        this.mainRadius *= .5
-        this.mainRadius *= .65
-        this.deltaRadius = this.mainRadius * .075
-
-        // shapes update
-        if (!!this.arcs) {
-            this.arcs.forEach((e, index) => {
-                e.x = this.width / 2
-                e.y = this.height / 2
-                e.radius = this.mainRadius + (index - this.arcs.length / 2) * this.deltaRadius
-            })
-        }
-
-        // refresh
-        this.drawUpdate()
+    updateCanvasDimensions() {
+        this.canvas.width = this.canvas.offsetWidth;
+        this.canvas.height = this.canvas.offsetHeight;
+        this.radius = Math.min(this.canvas.width, this.canvas.height) / 2 * 0.3;
+        this.ctx.translate(this.canvas.width / 2, this.radius);
     }
 
     update() {
-        if (!super.update()) return
-        this.drawUpdate()
-    }
-
-    drawUpdate() {
-        this.clear()
-
-        // style
-        this.context.lineCap = 'round'
-        this.context.strokeStyle = this.params.color
-        this.context.lineWidth = this.params['line-width']
-
-        // draw
-        this.drawGradation()
-        if (!!this.arcs) {
-            this.arcs.forEach(arc => {
-                if (this.params["is-update"]) arc.update(this.globalContext.time.delta / 1000, this.params.speed)
-                arc.draw(this.context)
-            })
+        if (this.params['is-update']) {
+            this.drawRectangle();
+            this.drawClock();
         }
     }
 
-    drawGradation() {
-        const nGradation_ = 12
-        for (let i = 0; i < nGradation_; i++) {
-            const angle_ = 2 * Math.PI * i / nGradation_ + Math.PI / 2
-            const x_ = this.width / 2 + (this.mainRadius - this.deltaRadius / 2) * Math.cos(angle_)
-            const y_ = this.height / 2 + (this.mainRadius - this.deltaRadius / 2) * Math.sin(angle_)
-            const length_ = this.deltaRadius * (this.nArcs - 1)
-            drawLine(this.context, x_, y_, length_, angle_)
+    drawClock() {
+
+        const grad = this.ctx.createRadialGradient(0, 0, this.radius * 0.95, 0, 0, this.radius * 1.05);
+        grad.addColorStop(0, '#333');
+        grad.addColorStop(0.5, 'white');
+        grad.addColorStop(1, '#333');
+
+        this.ctx.beginPath();
+        this.ctx.arc(0, 0, this.radius, 0, 2 * Math.PI);
+        this.ctx.fillStyle = "white";
+        this.ctx.fill();
+
+
+        this.ctx.lineWidth = this.radius * 0.04;
+        this.ctx.stroke();
+
+        for(let sec = 0 ; sec < 60 ; sec++) {
+            let angle = (sec * Math.PI / 30);
+            let x = this.radius * Math.cos(angle);
+            let y = this.radius * Math.sin(angle);
+            let x2, y2;
+
+            if(sec % 5 == 0) {
+                x2 = (this.radius * 0.85) * Math.cos(angle);
+                y2 = (this.radius * 0.85) * Math.sin(angle);
+                this.ctx.lineCap = 'round'; 
+
+                this.ctx.strokeStyle = '#9f72d6';
+                this.ctx.lineWidth = this.radius * 0.02;
+                
+            } else {
+                x2 = (this.radius * 0.92) * Math.cos(angle);
+                y2 = (this.radius * 0.92) * Math.sin(angle);
+                this.ctx.lineCap = 'round'; 
+
+                this.ctx.strokeStyle = '#346991';
+                this.ctx.lineWidth = this.radius * 0.02;
+            }
+            
+
+            this.ctx.beginPath();
+            this.ctx.moveTo(x, y);
+            this.ctx.lineTo(x2, y2);
+            this.ctx.stroke();
+            
         }
+
+        this.ctx.beginPath();
+        this.ctx.arc(0, 0, this.radius * 0.1, 0, 2 * Math.PI);
+        this.ctx.fillStyle = '#333';
+        this.ctx.fill();
+
+
+    }
+
+    drawRectangle() {
+        this.ctx.save(); 
+    
+        this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+    
+        const rectWidth = this.canvas.width / 6;
+        const rectColor = this.params.rectColor; 
+        const gap = this.params.gap; 
+    
+        const numRects = Math.floor(this.canvas.width / (rectWidth + gap));
+        const totalGap = this.canvas.width - numRects * rectWidth;
+        const actualGap = totalGap / (numRects - 1);
+    
+        for (let i = 0; i < numRects; i++) {
+            const xPos = i * (rectWidth + actualGap);
+    
+            let rectHeight;
+            if (i === Math.floor(numRects / 2)) {
+                rectHeight = this.canvas.height;
+            } else {
+                rectHeight = ((Math.sin(i) + 1) / 2) * this.canvas.height;
+            }
+    
+            this.ctx.fillStyle = rectColor;
+            this.ctx.fillRect(xPos, this.canvas.height - rectHeight, rectWidth, rectHeight);
+        }
+    
+        this.ctx.restore(); 
     }
 }
