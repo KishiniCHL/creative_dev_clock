@@ -18,8 +18,23 @@ export default class Scenario extends Scene {
         this.ctx = this.canvas.getContext('2d');
         this.radius = Math.min(this.canvas.width, this.canvas.height) / 2 * 0.4;
         this.ctx.translate(this.canvas.width / 2, this.radius);
+
+        const rectWidth = this.canvas.width / 6;
+        const gap = this.params.gap; 
     
-        this.drawRectangle();
+        const numRects = Math.floor(this.canvas.width / (rectWidth + gap));
+    
+        this.buildingHeights = [];
+        for (let i = 0; i < numRects; i++) {
+            if (i === Math.floor(numRects / 2)) {
+                this.buildingHeights[i] = this.canvas.height;
+            } else {
+                // immeubles plus petits en hauteur par rapport a la taille du canvas
+                this.buildingHeights[i] = this.canvas.height * (0.7 + Math.random() * 0.3); 
+            }
+        }
+    
+        this.drawBuildings();
 
         this.radius = Math.min(this.canvas.width, this.canvas.height) / 2 * 0.3;
 
@@ -30,11 +45,12 @@ export default class Scenario extends Scene {
     
         window.addEventListener('resize', () => {
             this.updateCanvasDimensions();
-            this.drawRectangle();
+            this.drawBuildings();
             this.drawClock();
         });
     }
 
+    // quand la fenetre du navigateur est changée pour le responsive
     updateCanvasDimensions() {
         this.canvas.width = this.canvas.offsetWidth;
         this.canvas.height = this.canvas.offsetHeight;
@@ -44,13 +60,14 @@ export default class Scenario extends Scene {
 
     update() {
         if (this.params['is-update']) {
-            this.drawRectangle();
+            this.drawBuildings();
             this.drawClock();
         }
     }
 
-    drawClock() {
+    //Horloge
 
+    drawClock() {
         const grad = this.ctx.createRadialGradient(0, 0, this.radius * 0.95, 0, 0, this.radius * 1.05);
         grad.addColorStop(0, '#333');
         grad.addColorStop(0.5, 'white');
@@ -100,11 +117,35 @@ export default class Scenario extends Scene {
         this.ctx.arc(0, 0, this.radius * 0.1, 0, 2 * Math.PI);
         this.ctx.fillStyle = '#333';
         this.ctx.fill();
-
-
     }
 
-    drawRectangle() {
+
+
+    //les immeubles 
+    drawRectangle(xPos, rectWidth, rectHeight, rectColor) {
+        this.ctx.fillStyle = rectColor;
+        this.ctx.fillRect(xPos, this.canvas.height - rectHeight, rectWidth, rectHeight);
+    }
+    
+    //les toits
+    drawTriangle(xPos, rectWidth, rectHeight, triangleHeight) {
+        this.ctx.beginPath();
+        this.ctx.moveTo(xPos + rectWidth / 2, this.canvas.height - rectHeight - triangleHeight);
+        this.ctx.lineTo(xPos, this.canvas.height - rectHeight);
+        this.ctx.lineTo(xPos + rectWidth, this.canvas.height - rectHeight);
+        this.ctx.closePath();
+        this.ctx.fill();
+    }
+    
+    //les fenetres des immeubles
+    drawWindow(xPos, yPos, windowSize, windowColor) {
+        this.ctx.fillStyle = windowColor;
+        this.ctx.fillRect(xPos, yPos, windowSize, windowSize);
+    }
+
+
+    //assemblages des functions pour faire les immeubles
+    drawBuildings() {
         this.ctx.save(); 
     
         this.ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -117,18 +158,32 @@ export default class Scenario extends Scene {
         const totalGap = this.canvas.width - numRects * rectWidth;
         const actualGap = totalGap / (numRects - 1);
     
+        const triangleHeight = this.canvas.height / 10; 
+
+        //parametres des fenetres
+        const windowSize = rectWidth / 4;
+        const windowColor = '#edce6f'; 
+    
         for (let i = 0; i < numRects; i++) {
             const xPos = i * (rectWidth + actualGap);
-    
-            let rectHeight;
-            if (i === Math.floor(numRects / 2)) {
-                rectHeight = this.canvas.height;
-            } else {
-                rectHeight = ((Math.sin(i) + 1) / 2) * this.canvas.height;
+        
+            // les hauteurs rangé dans l array du début
+            const rectHeight = this.buildingHeights[i];
+        
+            this.drawRectangle(xPos, rectWidth, rectHeight, rectColor);
+            this.drawTriangle(xPos, rectWidth, rectHeight, triangleHeight);
+        
+
+           // fenetres
+            if (i !== Math.floor(numRects / 2)) {
+                for (let y = this.canvas.height - rectHeight + windowSize; y < this.canvas.height - triangleHeight; y += windowSize * 2) {
+                    const x1 = xPos + rectWidth / 4 - windowSize / 2;
+                    const x2 = xPos + 3 * rectWidth / 4 - windowSize / 2;
+
+                    this.drawWindow(x1, y, windowSize, windowColor);
+                    this.drawWindow(x2, y, windowSize, windowColor);
+                }
             }
-    
-            this.ctx.fillStyle = rectColor;
-            this.ctx.fillRect(xPos, this.canvas.height - rectHeight, rectWidth, rectHeight);
         }
     
         this.ctx.restore(); 
