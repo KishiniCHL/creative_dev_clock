@@ -4,7 +4,7 @@
 
 Demo website : https://creative-dev-clock-lyart.vercel.app
 
-for debug : https://creative-dev-clock-lyart.vercel.app#debug (need refresh)
+for debug : https://creative-dev-clock-lyart.vercel.app/#debug ( may need refresh )
 
 
 --- 
