@@ -101,7 +101,7 @@ export default class Scenario extends Scene {
                 y2 = (this.radius * 0.85) * Math.sin(angle);
                 this.ctx.lineCap = 'round'; 
 
-                this.ctx.strokeStyle = '#d9669d';
+                this.ctx.strokeStyle = this.params.bigLinesColor || '#d9669d';
                 this.ctx.lineWidth = this.radius * 0.02;
                 
             } else {
@@ -109,7 +109,7 @@ export default class Scenario extends Scene {
                 y2 = (this.radius * 0.92) * Math.sin(angle);
                 this.ctx.lineCap = 'round'; 
 
-                this.ctx.strokeStyle = '#346991';
+                this.ctx.strokeStyle = this.params.smallLinesColor || '#346991';
                 this.ctx.lineWidth = this.radius * 0.02;
             }
             
@@ -123,7 +123,7 @@ export default class Scenario extends Scene {
 
         this.ctx.beginPath();
         this.ctx.arc(0, 0, this.radius * 0.1, 0, 2 * Math.PI);
-        this.ctx.fillStyle = '#333';
+        this.ctx.fillStyle = this.params.roundColor || '#333';
         this.ctx.fill();
 
         this.drawDigits(this.ctx, this.radius);
@@ -136,7 +136,7 @@ export default class Scenario extends Scene {
         this.ctx.font = this.radius * 0.15 + "px arial";
         this.ctx.textBaseline = "middle";
         this.ctx.textAlign = "center";
-        this.ctx.fillStyle = "#2e1b4a";
+        this.ctx.fillStyle = this.params.digitsColor || "#2e1b4a";
     
         for(let num = 1 ; num < 13 ; num++) {
             let angle = (num * Math.PI / 6);
@@ -161,14 +161,14 @@ export default class Scenario extends Scene {
         //heures
         hour = hour % 12;
         hour = (hour * Math.PI / 6) + (minute * Math.PI / (6 * 60)) + (second * Math.PI / (360 * 60));
-        this.drawHand(this.ctx, hour, this.radius * 0.5, this.radius * 0.07, "#5e5bc9");
+        this.drawHand(this.ctx, hour, this.radius * 0.5, this.radius * 0.07, this.params.smallHandColor || "#1b1b29");
         
         //min,utes
         minute = (minute * Math.PI / 30) + (second * Math.PI / (30 * 60));
-        this.drawHand(this.ctx, minute, this.radius * 0.8, this.radius * 0.07, "#1b1b29");
+        this.drawHand(this.ctx, minute, this.radius * 0.8, this.radius * 0.07, this.params.bigHandColor || "#5e5bc9");
         
         second = (second * Math.PI / 30);
-        this.drawHand(this.ctx, second, this.radius * 0.9, this.radius * 0.02, "#c95b78");
+        this.drawHand(this.ctx, second, this.radius * 0.9, this.radius * 0.02, this.params.secondHandColor || "#c95b78");
 
         this.changeBackground(); 
 
@@ -188,15 +188,15 @@ export default class Scenario extends Scene {
 
         ctx.beginPath();
         ctx.arc(0, 0, width * 2, 0, 2 * Math.PI);
-        ctx.fillStyle = "purple";
+        ctx.fillStyle = "#af24ff";
 
     }
 
     
 
     //les immeubles 
-    drawRectangle(xPos, rectWidth, rectHeight, rectColor) {
-        this.ctx.fillStyle = rectColor;
+    drawRectangle(xPos, rectWidth, rectHeight, buildingColor) {
+        this.ctx.fillStyle = buildingColor;
         this.ctx.fillRect(xPos, this.canvas.height - rectHeight, rectWidth, rectHeight);
     }
     
@@ -224,7 +224,7 @@ export default class Scenario extends Scene {
         this.ctx.setTransform(1, 0, 0, 1, 0, 0);
     
         const rectWidth = this.canvas.width / 6;
-        const rectColor = this.params.rectColor; 
+        const buildingColor = this.params.buildingColor; 
         const gap = 20; 
     
         const numRects = Math.floor(this.canvas.width / (rectWidth + gap));
@@ -235,7 +235,6 @@ export default class Scenario extends Scene {
 
         //parametres des fenetres
         const windowSize = rectWidth / 4;
-        const windowColor = this.params.windowColor; 
     
         for (let i = 0; i < numRects; i++) {
             const xPos = i * (rectWidth + actualGap);
@@ -243,9 +242,8 @@ export default class Scenario extends Scene {
             // les hauteurs rangé dans l array du début
             const rectHeight = this.buildingHeights[i];
 
-            
         
-            this.drawRectangle(xPos, rectWidth, rectHeight, rectColor);
+            this.drawRectangle(xPos, rectWidth, rectHeight, buildingColor);
             this.drawTriangle(xPos, rectWidth, rectHeight, triangleHeight);
         
 
@@ -255,8 +253,8 @@ export default class Scenario extends Scene {
                 const x1 = xPos + rectWidth / 4 - windowSize / 2;
                 const x2 = xPos + 3 * rectWidth / 4 - windowSize / 2;
         
-                this.drawWindow(x1, y, windowSize, this.currentWindowColor); // Use this.currentWindowColor instead of windowColor
-                this.drawWindow(x2, y, windowSize, this.currentWindowColor); // Use this.currentWindowColor instead of windowColor
+                this.drawWindow(x1, y, windowSize, this.currentWindowColor); 
+                this.drawWindow(x2, y, windowSize, this.currentWindowColor); 
             }
         }
         }
@@ -266,26 +264,39 @@ export default class Scenario extends Scene {
 
 
     changeBackground() {
-        let now = new Date();
-        // now.setHours(6); //test changements
-        let hour = now.getHours();
-        
-        if (hour >= 6 && hour < 12) {
-            // Matin
+        if (this.params.morning) {
             document.body.style.backgroundColor = "#85D0EF";
             this.currentWindowColor = this.windowColors.morning;
-        } else if (hour >= 12 && hour < 18) {
-            // Aprem
+        } else if (this.params.afternoon) {
             document.body.style.backgroundColor = "#ffd573";
             this.currentWindowColor = this.windowColors.afternoon;
-        } else if (hour >= 18 && hour < 21) {
-            // Soir
+        } else if (this.params.evening) {
             document.body.style.backgroundColor = "#F17E2E";
             this.currentWindowColor = this.windowColors.evening;
-        } else {
-            // Nuit
+        } else if (this.params.night) {
             document.body.style.backgroundColor = "#130E46";
             this.currentWindowColor = this.windowColors.night;
+        } else {
+            let now = new Date();
+            // now.setHours(6); //test changements
+            let hour = now.getHours();
+
+            if (hour >= 6 && hour < 12) {
+                document.body.style.backgroundColor = "#85D0EF";
+                this.currentWindowColor = this.windowColors.morning;
+                document.querySelector('h1').style.color = "#ffffff";
+            } else if (hour >= 12 && hour < 18) {
+                document.body.style.backgroundColor = "#ffd573";
+                this.currentWindowColor = this.windowColors.afternoon;
+            } else if (hour >= 18 && hour < 21) {
+                document.body.style.backgroundColor = "#F17E2E";
+                this.currentWindowColor = this.windowColors.evening;
+            } else {
+                document.body.style.backgroundColor = "#130E46";
+                this.currentWindowColor = this.windowColors.night;
+
+            }
         }
     }
 }
+
