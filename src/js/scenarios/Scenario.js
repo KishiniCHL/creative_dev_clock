@@ -117,9 +117,71 @@ export default class Scenario extends Scene {
         this.ctx.arc(0, 0, this.radius * 0.1, 0, 2 * Math.PI);
         this.ctx.fillStyle = '#333';
         this.ctx.fill();
+
+        this.drawDigits(this.ctx, this.radius);
+
+        this.drawTime();
     }
 
+    drawDigits(){
+        this.ctx.font = this.radius * 0.15 + "px arial";
+        this.ctx.textBaseline = "middle";
+        this.ctx.textAlign = "center";
+        this.ctx.fillStyle = "green";
+    
+        for(let num = 1 ; num < 13 ; num++) {
+            let angle = (num * Math.PI / 6);
+            this.ctx.rotate(angle);
+            this.ctx.translate(0, -this.radius * 0.75);
+            this.ctx.rotate(-angle);
+    
+            this.ctx.fillText(num.toString(), 0, 0);
+            this.ctx.rotate(angle);
+            this.ctx.translate(0, this.radius * 0.75);
+            this.ctx.rotate(-angle);
+        }
+    }
 
+    drawTime(){
+        let now = new Date();
+        let hour = now.getHours();
+        let minute = now.getMinutes();
+        let second = now.getSeconds();
+
+        //heures
+        hour = hour % 12;
+        hour = (hour * Math.PI / 6) + (minute * Math.PI / (6 * 60)) + (second * Math.PI / (360 * 60));
+        this.drawHand(this.ctx, hour, this.radius * 0.5, this.radius * 0.07, "green");
+        
+        //min,utes
+        minute = (minute * Math.PI / 30) + (second * Math.PI / (30 * 60));
+        this.drawHand(this.ctx, minute, this.radius * 0.8, this.radius * 0.07, "green");
+        
+        second = (second * Math.PI / 30);
+        this.drawHand(this.ctx, second, this.radius * 0.9, this.radius * 0.02, "red");
+
+        this.changeBackground(); // Call the new method at the end of drawTime
+
+    }
+
+    drawHand(ctx, pos, length, width, color) {
+        ctx.beginPath();
+        ctx.lineWidth = width;
+        ctx.lineCap = "round";
+        ctx.strokeStyle = color;
+        ctx.moveTo(0, 0);
+        ctx.rotate(pos);
+        ctx.lineTo(0, -length);
+        ctx.stroke();
+        ctx.rotate(-pos);
+
+        ctx.beginPath();
+        ctx.arc(0, 0, width * 2, 0, 2 * Math.PI);
+        ctx.fillStyle = "purple";
+
+    }
+
+    
 
     //les immeubles 
     drawRectangle(xPos, rectWidth, rectHeight, rectColor) {
@@ -187,5 +249,26 @@ export default class Scenario extends Scene {
         }
     
         this.ctx.restore(); 
+    }
+
+
+    changeBackground() {
+   let now = new Date();
+    // now.setHours(8); //test changements
+    let hour = now.getHours();
+    
+        if (hour >= 6 && hour < 12) {
+            // Morning
+            document.body.style.backgroundColor = "yellow";
+        } else if (hour >= 12 && hour < 18) {
+            // Afternoon
+            document.body.style.backgroundColor = "orange";
+        } else if (hour >= 18 && hour < 21) {
+            // Evening
+            document.body.style.backgroundColor = "purple";
+        } else {
+            // Night
+            document.body.style.backgroundColor = "black";
+        }
     }
 }
