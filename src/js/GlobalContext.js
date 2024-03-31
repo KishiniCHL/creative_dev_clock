@@ -22,22 +22,10 @@ export default class GlobalContext {
 
         // Scenes
         this.scenes = []
-
-        // Gap
-        this.gap = 1; // Default gap
-
-        // Height
-        this.height = 1; // Default height
+        
 
     }
 
-    setGap(gap, isChecked) {
-        if (isChecked) {
-            this.gap = 0; 
-        } else {
-            this.gap = gap;
-        }
-    }
 
     pushScene(scene) {
         this.scenes.push(scene)

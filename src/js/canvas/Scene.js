@@ -10,19 +10,15 @@ export default class Scene {
         // debug
         this.params = {
             'is-update': true,
-            gap: 20,
-            noGap: false,
             'rectColor': '#000000',
-            'buildings-height': true,
+            'windowColor': '#edce6f',
         }
         this.debug = this.globalContext.debug
         if (this.debug.active) {
             this.debugFolder = this.debug.ui.addFolder(this.id)
             this.debugFolder.add(this.params, 'is-update')
-            this.debugFolder.add(this.params, 'noGap').name('No gap').onChange((value) => {
-                this.params.gap = value ? 0 : 20; 
-            });
             this.debugFolder.addColor(this.params, 'rectColor')
+            this.debugFolder.addColor(this.params, 'windowColor')
         }
 
         // canvas
